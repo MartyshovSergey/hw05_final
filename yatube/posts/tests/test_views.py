@@ -147,6 +147,7 @@ class PaginatorViewsTest(TestCase):
         }
 
     def test_first_page_have_10_posts(self):
+        cache.clear()
         '''Тест: 10 постов на 1й странице'''
         for name, address in self.url_names.items():
             with self.subTest(name=name):
@@ -154,6 +155,7 @@ class PaginatorViewsTest(TestCase):
                 self.assertEqual(len(response.context['page_obj']), 10)
 
     def test_second_page_have_3_posts(self):
+        cache.clear()
         '''Тест: 3 поста на 2й странице'''
         for name, address in self.url_names.items():
             with self.subTest(name=name):
