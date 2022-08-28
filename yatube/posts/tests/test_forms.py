@@ -3,16 +3,13 @@ import tempfile
 
 from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
-from django.contrib.auth import get_user_model
 from django.test import Client, TestCase, override_settings
 from django.urls import reverse
 
-from ..models import Group, Post, User
 from ..forms import PostForm
+from ..models import Group, Post, User
 
 TEMP_MEDIA_ROOT = tempfile.mkdtemp(dir=settings.BASE_DIR)
-
-User = get_user_model()
 
 
 @override_settings(MEDIA_ROOT=TEMP_MEDIA_ROOT)
@@ -74,10 +71,12 @@ class PostCreateFormTests(TestCase):
         ))
         # Проверяем, увеличилось ли число постов
         self.assertEqual(Post.objects.count(), posts_count + 1)
-        # Проверяем, что создалась запись с заданным постом
+        # Проверяем, что создалась запись
         self.assertTrue(
             Post.objects.filter(
                 text=form_data['text'],
+                author=self.user,
+                image='posts/small.gif'
             ).exists()
         )
 
@@ -104,7 +103,8 @@ class PostCreateFormTests(TestCase):
         # Проверяем, что запись изменена с заданным постом
         self.assertTrue(
             Post.objects.filter(
+                author=self.post.author,
                 text=form_data['text'],
-                id='1'
+                id=self.post.id,
             ).exists()
         )

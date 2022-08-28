@@ -12,7 +12,6 @@ https://docs.djangoproject.com/en/2.2/ref/settings/
 
 import os
 
-
 POSTS_PER_PAGE: int = 10
 
 
