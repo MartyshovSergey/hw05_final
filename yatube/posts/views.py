@@ -3,99 +3,13 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.cache import cache_page
 
 from .forms import CommentForm, PostForm
-from .models import Comment, Follow, Group, Post, User
+from .models import Follow, Group, Post, User
 from .utils import paginator
-
-
-@cache_page(60 * 20)
-def index(request):
-    post_list = Post.objects.all().order_by('-pub_date')
-    page_obj = paginator(request, post_list)
-    context = {
-        'page_obj': page_obj,
-    }
-    return render(request, 'posts/index.html', context)
-
-
-def group_posts(request, slug):
-    group = get_object_or_404(Group, slug=slug)
-    post_list = Post.objects.all().order_by('-pub_date')
-    page_obj = paginator(request, post_list)
-    context = {
-        'group': group,
-        'page_obj': page_obj,
-    }
-    return render(request, 'posts/group_list.html', context)
-
-
-def profile(request, username):
-    user_profile = get_object_or_404(User, username=username)
-    post_list = Post.objects.filter(author=user_profile).order_by('-pub_date')
-    user_posts_count = Post.objects.filter(author=user_profile).count()
-    page_obj = paginator(request, post_list)
-    following = request.user.is_authenticated and \
-        Follow.objects.filter(
-            user=request.user,
-            author=user_profile
-        ).exists()
-    context = {'user_profile': user_profile,
-               'page_obj': page_obj,
-               'user_posts_count': user_posts_count,
-               'following': following
-               }
-    return render(request, 'posts/profile.html', context)
-
-
-def post_detail(request, post_id):
-    post_detail = get_object_or_404(Post, pk=post_id)
-    author_posts_count = post_detail.author.posts.count()
-    form = CommentForm(add_comment(request, post_id))
-    comments = Comment.objects.filter(post=post_id)
-    context = {
-        'post': post_detail,
-        'author_posts_count': author_posts_count,
-        'form': form,
-        'comments': comments,
-    }
-    return render(request, 'posts/post_detail.html', context)
-
-
-@login_required
-def post_create(request):
-    form = PostForm(request.POST or None, request.FILES or None)
-    if form.is_valid():
-        post = form.save(commit=False)
-        post.author = request.user
-        form.save()
-        return redirect('posts:profile', username=request.user.username)
-    context = {
-        'form': form
-    }
-    return render(request, 'posts/create_post.html', context)
-
-
-@login_required
-def post_edit(request, post_id):
-    post = get_object_or_404(Post, pk=post_id)
-    form = PostForm(
-        request.POST or None,
-        files=request.FILES or None,
-        instance=post,
-    )
-    is_edit = True
-    if request.user != post.author:
-        return redirect('posts:post_detail', post.pk)
-    if form.is_valid():
-        form.save()
-        return redirect('posts:post_detail', post_id)
-    context = {'form': form, 'is_edit': is_edit, 'post': post}
-    return render(request, 'posts/create_post.html', context)
 
 
 @login_required
 def add_comment(request, post_id):
-    # Получите пост
-    post = get_object_or_404(Post, pk=post_id)
+    post = get_object_or_404(Post, id=post_id)
     form = CommentForm(request.POST or None)
     if form.is_valid():
         comment = form.save(commit=False)
@@ -112,7 +26,87 @@ def follow_index(request):
     context = {
         'page_obj': page_obj
     }
-    return render(request, 'posts/follow.html', context)
+    return render(request, 'posts/follow_index.html', context)
+
+
+def group_posts(request, slug):
+    group = get_object_or_404(Group, slug=slug)
+    post_list = group.posts.select_related('author')
+    page_obj = paginator(request, post_list)
+    context = {
+        'group': group,
+        'page_obj': page_obj,
+    }
+    return render(request, 'posts/group_list.html', context)
+
+
+@cache_page(60 * 20)
+def index(request):
+    post_list = Post.objects.all().order_by('-pub_date')
+    page_obj = paginator(request, post_list)
+    context = {
+        'page_obj': page_obj,
+    }
+    return render(request, 'posts/index.html', context)
+
+
+@login_required
+def post_create(request):
+    form = PostForm(request.POST or None, request.FILES or None)
+    if form.is_valid():
+        post = form.save(commit=False)
+        post.author = request.user
+        form.save()
+        return redirect('posts:profile', username=request.user.username)
+    context = {
+        'form': form
+    }
+    return render(request, 'posts/create_post.html', context)
+
+
+def post_detail(request, post_id):
+    post_detail = get_object_or_404(Post, id=post_id)
+    author_posts_count = post_detail.author.posts.count()
+    form = CommentForm(add_comment(request, post_id))
+    comments = post_detail.comments.all()
+    context = {
+        'author_posts_count': author_posts_count,
+        'comments': comments,
+        'form': form,
+        'post': post_detail,
+    }
+    return render(request, 'posts/post_detail.html', context)
+
+
+@login_required
+def post_edit(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    if post.author != request.user:
+        return redirect('posts:post_detail', post_id=post_id)
+    form = PostForm(
+        request.POST or None,
+        files=request.FILES or None,
+        instance=post,
+    )
+    if form.is_valid():
+        form.save()
+        return redirect('posts:post_detail', post_id)
+    context = {'form': form, 'is_edit': True, 'post': post}
+    return render(request, 'posts/create_post.html', context)
+
+
+def profile(request, username):
+    author = get_object_or_404(User, username=username)
+    post_list = author.posts.all()
+    user_posts_count = post_list.count()
+    page_obj = paginator(request, post_list)
+    following = author.following.filter(user__id=request.user.id).exists()
+    context = {'author': author,
+               'following': following,
+               'page_obj': page_obj,
+               'user_posts_count': user_posts_count,
+               }
+    return render(request, 'posts/profile.html', context)
 
 
 @login_required

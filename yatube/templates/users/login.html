@@ -2,12 +2,10 @@
 
 {% block title %}Войти{% endblock %}
 
-{% block content %}
-
 {% load user_filters %}
 
-
-<div class="row justify-content-center">
+{% block content %}
+  <div class="row justify-content-center">
   <div class="col-md-8 p-5">
     <div class="card">
       <div class="card-header">
@@ -16,7 +14,7 @@
         <div class="card-body">
           {% if form.errors %}
               {% for field in form %}
-                {% for error in field.errors %}            
+                {% for error in field.errors %}
                   <div class="alert alert-danger">
                     {{ error|escape }}
                   </div>
@@ -38,7 +36,7 @@
 
           {% for field in form %}
             <div class="form-group row my-3"
-              {% if field.field.required %} 
+              {% if field.field.required %}
                 aria-required="true"
               {% else %}
                 aria-required="false"
@@ -64,15 +62,13 @@
             <button type="submit" class="btn btn-primary">
               Войти
             </button>
-            <!-- Тест на внимательность. Без переопределения шаблона этого адреса
-            не существует. Нужно что-то делать, иначе все упадет -->
             <a href="{% url 'users:login' %}" class="btn btn-link">
               Забыли пароль?
             </a>
           </div>
           </form>
-        </div> <!-- card body -->
-      </div> <!-- card -->
-    </div> <!-- col -->
-</div> <!-- row -->
+        </div>
+      </div>
+    </div>
+  </div>
 {% endblock %}

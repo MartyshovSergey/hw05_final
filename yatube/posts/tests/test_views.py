@@ -1,13 +1,11 @@
 from django import forms
-from django.contrib.auth import get_user_model
 from django.core.cache import cache
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from posts.models import Comment, Group, Post
-from yatube.settings import POSTS_PER_PAGE
+from posts.models import Comment, Group, Post, User
 
-User = get_user_model()
+from yatube.settings import POSTS_PER_PAGE
 
 
 class PostPagesTests(TestCase):
@@ -68,36 +66,35 @@ class PostPagesTests(TestCase):
     def test_post_create_and_post_edit_use_correct_context(self):
         responses = [
             (reverse('posts:post_create')),
-            (reverse('posts:post_edit', kwargs={'post_id': f'{self.post.id}'}))
+            (reverse('posts:post_edit',
+                     kwargs={'post_id': f'{self.post.id}'}))
         ]
         form_fields = {
             'group': forms.fields.ChoiceField,
             'text': forms.fields.CharField,
         }
         for url in responses:
-            with self.subTest(url=url):
-                response = self.authorized_client.get(url)
-                for value, expected in form_fields.items():
-                    with self.subTest(value=value):
-                        form_field = response.context.get(
-                            'form').fields.get(value)
-                        self.assertIsInstance(form_field, expected)
+            response = self.authorized_client.get(url)
+            for value, expected in form_fields.items():
+                with self.subTest(value=f'{url}, field: {value}'):
+                    form_field = response.context.get(
+                        'form'
+                    ).fields.get(value)
+                    self.assertIsInstance(form_field, expected)
 
     def test_new_post_with_group_index_and_group_posts(self):
         responses = [
-            (reverse('posts:group_posts', kwargs={'slug': self.group.slug})),
+            (reverse('posts:group_posts',
+                     kwargs={'slug': self.group.slug})),
             (reverse('posts:index'))
         ]
         for url in responses:
             with self.subTest(url=url):
                 response = self.authorized_client.get(url)
                 first_object = response.context['page_obj'][0]
-                new_post_text = first_object.text
-                new_post_id = first_object.id
-                new_post_group = first_object.group.slug
-                self.assertEqual(new_post_text, self.post.text)
-                self.assertEqual(new_post_id, self.post.id)
-                self.assertEqual(new_post_group, self.group.slug)
+                self.assertEqual(first_object.text, self.post.text)
+                self.assertEqual(first_object.id, self.post.id)
+                self.assertEqual(first_object.group.slug, self.group.slug)
 
 
 class PaginatorViewsTest(TestCase):
@@ -111,30 +108,29 @@ class PaginatorViewsTest(TestCase):
             slug='test-slug',
             description='Тестовое описание'
         )
-        cls.SECOND_PAGE = 3
+        cls.SECOND_PAGE_POSTS_NUM = 3
         objs = [
             Post(
                 author=cls.user,
                 group=cls.group,
                 text=f'test-post {i}'
             )
-            for i in range(cls.SECOND_PAGE + POSTS_PER_PAGE)
+            for i in range(cls.SECOND_PAGE_POSTS_NUM + POSTS_PER_PAGE)
         ]
         cls.post = Post.objects.bulk_create(objs=objs)
-
-    def setUp(self):
-        self.client = Client()
-        self.url_names = {
+        cls.url_names = {
             'index': reverse('posts:index'),
             'group_posts': reverse(
                 'posts:group_posts',
-                kwargs={'slug': self.group.slug}
+                kwargs={'slug': cls.group.slug}
             ),
             'profile': reverse(
                 'posts:profile',
-                kwargs={'username': self.user.username}
+                kwargs={'username': cls.user.username}
             ),
         }
+
+    def setUp(self):
         cache.clear()
 
     def test_first_page_contains_ten_records(self):
@@ -154,7 +150,7 @@ class PaginatorViewsTest(TestCase):
                 response = self.client.get(address + '?page=2')
                 self.assertEqual(
                     len(response.context['page_obj']),
-                    self.SECOND_PAGE
+                    self.SECOND_PAGE_POSTS_NUM
                 )
 
 
@@ -169,10 +165,7 @@ class CacheViewsTest(TestCase):
             author=cls.user
         )
 
-    def setUp(self):
-        self.guest_client = Client()
-
-    def test_cache_index_pages(self):
+    def test_cache_index_page(self):
         """Проверяем работу кэша главной страницы."""
         first_response = self.client.get(reverse('posts:index'))
         anoter_post_note = 'Создаем еще один пост'
@@ -367,5 +360,7 @@ class CommentViewsTest(TestCase):
         self.assertEqual(Comment.objects.count(), comment_count + 1)
         self.assertTrue(Comment.objects.filter(
             text=form_data['text'],
+            author=CommentViewsTest.auth_user.id,
+            post=self.post.id
         ).exists())
         self.assertEqual(comment_obj.author, self.auth_user)

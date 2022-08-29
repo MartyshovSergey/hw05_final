@@ -13,12 +13,12 @@
             Дата публикации: {{ post.pub_date|date:'d E Y' }}
           </li>
           {% if post.group %}
-          <li class="list-group-item">
-            Группа:
-            <a href="{% url 'posts:group_posts' post.group.slug %}">
-              Все записи группы
-            </a>
-          </li>
+            <li class="list-group-item">
+              Группа:
+              <a href="{% url 'posts:group_posts' post.group.slug %}">
+                Все записи группы
+              </a>
+            </li>
           {% endif %}
           <li class="list-group-item">
             Автор: {{ post.author }}
@@ -41,12 +41,12 @@
           {{ post.text | safe }}
         </p>
         {% if user == post.author %}
-        <a class="btn btn-primary" href="{% url 'posts:post_edit' post.id %}">
-          Редактировать запись
-        </a>
-      {% endif %}
+          <a class="btn btn-primary" href="{% url 'posts:post_edit' post.id %}">
+            Редактировать запись
+          </a>
+        {% endif %}
 
-      {% include 'posts/add_comment.html' %}
+        {% include 'posts/add_comment.html' %}
 
       </article>
     </div>
