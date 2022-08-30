@@ -1,99 +1,75 @@
 {% extends 'base.html' %}
 
 {% block title %}
-  <title>
-    {% if is_edit %}
-      Редактировать пост
-    {% else %}
-      Новый пост
-    {% endif %}
-  </title>
-{% endblock title %}
+  {% if is_edit %}
+    Редактировать запись
+  {% else %}
+    Новая запись
+  {% endif %}
+{% endblock %}
 {% block content %}
-    <main>
-      <div class="container py-5">
-        <div class="row justify-content-center">
-          <div class="col-md-8 p-5">
-            <div class="card">
-              <div class="card-header">
-                {% if is_edit %}
-                  Редактировать запись
-                {% else %}
-                  Новый пост
-                {% endif %}
-              </div>
-              <div class="card-body">
-                {% if is_edit %}
-                  <form method="post" enctype="multipart/form-data">
-                {% else %}
-                  <form method="post"  enctype="multipart/form-data">
-                {% endif %}
-                {% csrf_token %}
-                <div class="form-group row my-3 p-3">
-                  {% if form.errors %}
-                    {% for field in form %}
-                      {% for error in field.errors %}
-                        <div class="alert alert-danger">
-                          {{ error|escape }}
-                        </div>
-                      {% endfor %}
-                    {% endfor %}
-                    {% for error in form.non_field_errors %}
-                      <div class="alert alert-danger">
-                        {{ error|escape }}
-                      </div>
-                    {% endfor %}
-                  {% endif %}
-                  <div class="form-group row my-3 p-3">
-                    <label for="{{ form.text.id_for_label }}">
-                      {{ form.text.label }}
-                      <span class="required text-danger" >*</span>
-                    </label>
-                    <textarea name="text" cols="40" rows="10" class="form-control" required id="{{ form.text.id_for_label }}">
-                      {{ post }}
-                    </textarea>
-                    {% if form.text.help_text %}
-                      <small id="{{ form.text.id_for_label }}-help" class="form-text text-muted">
-                        {{ form.text.help_text|safe }}
+  <div class="container py-5">
+    <div class="row justify-content-center">
+      <div class="col-md-8 p-5">
+        <div class="card">
+          <div class="card-header">
+            {% if is_edit %}
+              Редактировать запись
+            {% else %}
+              Новая запись
+            {% endif %}
+          </div>
+          <div class="card-body">
+          {% load user_filters %}
+            {% if form.errors %}
+                {% for field in form %}
+                  {% for error in field.errors %}
+                    <div class="alert alert-danger">
+                      {{ error|escape }}
+                    </div>
+                  {% endfor %}
+                {% endfor %}
+                {% for error in form.non_field_errors %}
+                  <div class="alert alert-danger">
+                    {{ error|escape }}
+                  </div>
+                {% endfor %}
+              {% endif %}
+            <form method="POST" enctype="multipart/form-data">
+            {% csrf_token %}
+              {% for field in form %}
+                <div class="form-group row my-3">
+                  <label for="{{ field.id_for_label }}">
+                    {{ field.label }}
+                      {% if field.field.required %}
+                        <span class="required text-danger">*</span>
+                      {% endif %}
+                  </label>
+                  <div>
+                    {{ field|addclass:'form-control' }}
+                    {% if field.help_text %}
+                      <small
+                          id="{{ field.id_for_label }}"
+                          class="form-text text-muted"
+                      >
                       </small>
                     {% endif %}
-                  </div>
-                  <div class="form-group row my-3 p-3">
-                    <label for="{{ form.group.id_for_label }}">
-                      {{ form.group.label }}
-                    </label>
-                    <select name="group" class="form-control" id="{{ form.group.id_for_label }}">
-                      {% for field in form.group %}
-                        <option value="{{ field.id_for_label }}">{{ field }}</option>
-                    {% endfor%}
-                    </select>
-                    {% if form.group.help_text %}
-                      <small id="{{ form.group.id_for_label }}-help" class="form-text text-muted">
-                        {{ form.group.help_text|safe }}
-                      </small>
-                    {% endif %}
-                  </div>
-                  <div class="form-group row my-3 p-3">
-                    <label for="{{ form.image.id_for_label }}">
-                      {{ form.image.label }}
-                    </label>
-                    <input type="file" name="image" accept="image/*" class="form-control" id="{{ form.image.id_for_label }}">
                   </div>
                 </div>
-                  <div class="d-flex justify-content-end">
-                    <button type="submit" class="btn btn-primary">
-                      {% if is_edit %}
-                        Сохранить
-                      {% else %}
-                        Добавить
-                      {% endif %}
-                    </button>
-                  </div>
-                </form>
+              {% endfor %}
+              <div class="d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary">
+                  {% if is_edit %}
+                    Сохранить
+                  {% else %}
+                    Добавить
+                  {% endif %}
+                </button>
               </div>
-            </div>
+            </form>
           </div>
         </div>
       </div>
-    </main>
+    </div>
+  </div>
 {% endblock %}

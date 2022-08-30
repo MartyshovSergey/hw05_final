@@ -2,7 +2,7 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.cache import cache_page
 
-from yatube.settings import CASHE_TIME
+from yatube.settings import CACHE_TIME
 
 from .forms import CommentForm, PostForm
 from .models import Follow, Group, Post, User
@@ -42,7 +42,7 @@ def group_posts(request, slug):
     return render(request, 'posts/group_list.html', context)
 
 
-@cache_page(CASHE_TIME)
+@cache_page(CACHE_TIME)
 def index(request):
     post_list = Post.objects.all().order_by('-pub_date')
     page_obj = paginator(request, post_list)
