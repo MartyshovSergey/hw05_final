@@ -2,6 +2,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.cache import cache_page
 
+from yatube.settings import CASHE_TIME
+
 from .forms import CommentForm, PostForm
 from .models import Follow, Group, Post, User
 from .utils import paginator
@@ -40,7 +42,7 @@ def group_posts(request, slug):
     return render(request, 'posts/group_list.html', context)
 
 
-@cache_page(60 * 20)
+@cache_page(CASHE_TIME)
 def index(request):
     post_list = Post.objects.all().order_by('-pub_date')
     page_obj = paginator(request, post_list)
@@ -101,11 +103,12 @@ def profile(request, username):
     user_posts_count = post_list.count()
     page_obj = paginator(request, post_list)
     following = author.following.filter(user__id=request.user.id).exists()
-    context = {'author': author,
-               'following': following,
-               'page_obj': page_obj,
-               'user_posts_count': user_posts_count,
-               }
+    context = {
+        'author': author,
+        'following': following,
+        'page_obj': page_obj,
+        'user_posts_count': user_posts_count,
+    }
     return render(request, 'posts/profile.html', context)
 
 

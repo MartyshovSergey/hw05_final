@@ -5,6 +5,49 @@ from django.db.models.constraints import UniqueConstraint
 User = get_user_model()
 
 
+class Comment(models.Model):
+    post = models.ForeignKey(
+        'Post',
+        on_delete=models.CASCADE,
+        related_name='comments'
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.CASCADE,
+        related_name='comments'
+    )
+    text = models.TextField(
+        verbose_name='Текст комментария.',
+        help_text='Напишите текст комментария'
+    )
+    created = models.DateTimeField(
+        verbose_name='Publication date',
+        auto_now_add=True
+    )
+
+    class Meta:
+        ordering = ('-created',)
+
+    def __str__(self):
+        return self.text[:15]
+
+
+class Follow(models.Model):
+    user = models.ForeignKey(
+        User,
+        related_name='follower',
+        on_delete=models.CASCADE,
+    )
+    author = models.ForeignKey(
+        User,
+        related_name='following',
+        on_delete=models.CASCADE,
+    )
+
+    class Meta:
+        UniqueConstraint(fields=['author', 'user'], name='unique_follower')
+
+
 class Group(models.Model):
     title = models.CharField(max_length=200)
     slug = models.SlugField(unique=True)
@@ -47,46 +90,3 @@ class Post(models.Model):
 
     def __str__(self):
         return self.text[:15]
-
-
-class Comment(models.Model):
-    post = models.ForeignKey(
-        Post,
-        on_delete=models.CASCADE,
-        related_name='comments'
-    )
-    author = models.ForeignKey(
-        User,
-        on_delete=models.CASCADE,
-        related_name='comments'
-    )
-    text = models.TextField(
-        verbose_name='Текст комментария.',
-        help_text='Напишите текст комментария'
-    )
-    created = models.DateTimeField(
-        verbose_name='Publication date',
-        auto_now_add=True
-    )
-
-    class Meta:
-        ordering = ('-created',)
-
-    def __str__(self):
-        return self.text[:15]
-
-
-class Follow(models.Model):
-    user = models.ForeignKey(
-        User,
-        related_name='follower',
-        on_delete=models.CASCADE,
-    )
-    author = models.ForeignKey(
-        User,
-        related_name='following',
-        on_delete=models.CASCADE,
-    )
-
-    class Meta:
-        UniqueConstraint(fields=['user', 'author'], name='unique_follower')

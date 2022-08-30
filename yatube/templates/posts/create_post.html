@@ -24,38 +24,62 @@
               </div>
               <div class="card-body">
                 {% if is_edit %}
-                  <form method="post" action="{% url 'posts:post_edit' post.pk %}" enctype="multipart/form-data">
+                  <form method="post" enctype="multipart/form-data">
                 {% else %}
-                  <form method="post" action="{% url 'posts:post_create' %}" enctype="multipart/form-data">
+                  <form method="post"  enctype="multipart/form-data">
                 {% endif %}
                 {% csrf_token %}
+                <div class="form-group row my-3 p-3">
+                  {% if form.errors %}
+                    {% for field in form %}
+                      {% for error in field.errors %}
+                        <div class="alert alert-danger">
+                          {{ error|escape }}
+                        </div>
+                      {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                      <div class="alert alert-danger">
+                        {{ error|escape }}
+                      </div>
+                    {% endfor %}
+                  {% endif %}
                   <div class="form-group row my-3 p-3">
-                    <label for="id_text">
-                      Текст поста
+                    <label for="{{ form.text.id_for_label }}">
+                      {{ form.text.label }}
                       <span class="required text-danger" >*</span>
                     </label>
-                    {{ form.text }}
-                    <small id="id_text-help" class="form-text text-muted">
-                      Текст нового поста
-                    </small>
-                  </div>
-                  <div class="form-group row my-3 p-3">
-                    <label for="id_group">
-                      Группа
-                    </label>
-                    <select name="group" class="form-control" id="id_group">
-                      <option value= {{ form.group }} </option>
-                    </select>
-                    <small id="id_group-help" class="form-text text-muted">
-                      Группа, к которой будет относиться пост
-                    </small>
-                  </div>
-                  <div class="form-group row my-3 p-3">
-                      {{ form.image  }}
-                      <small id="id_group-help" class="form-text text-muted">
-                        Прикрепите файл к посту
+                    <textarea name="text" cols="40" rows="10" class="form-control" required id="{{ form.text.id_for_label }}">
+                      {{ post }}
+                    </textarea>
+                    {% if form.text.help_text %}
+                      <small id="{{ form.text.id_for_label }}-help" class="form-text text-muted">
+                        {{ form.text.help_text|safe }}
                       </small>
+                    {% endif %}
                   </div>
+                  <div class="form-group row my-3 p-3">
+                    <label for="{{ form.group.id_for_label }}">
+                      {{ form.group.label }}
+                    </label>
+                    <select name="group" class="form-control" id="{{ form.group.id_for_label }}">
+                      {% for field in form.group %}
+                        <option value="{{ field.id_for_label }}">{{ field }}</option>
+                    {% endfor%}
+                    </select>
+                    {% if form.group.help_text %}
+                      <small id="{{ form.group.id_for_label }}-help" class="form-text text-muted">
+                        {{ form.group.help_text|safe }}
+                      </small>
+                    {% endif %}
+                  </div>
+                  <div class="form-group row my-3 p-3">
+                    <label for="{{ form.image.id_for_label }}">
+                      {{ form.image.label }}
+                    </label>
+                    <input type="file" name="image" accept="image/*" class="form-control" id="{{ form.image.id_for_label }}">
+                  </div>
+                </div>
                   <div class="d-flex justify-content-end">
                     <button type="submit" class="btn btn-primary">
                       {% if is_edit %}

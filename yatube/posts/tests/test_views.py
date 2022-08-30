@@ -2,7 +2,6 @@ from django import forms
 from django.core.cache import cache
 from django.test import Client, TestCase
 from django.urls import reverse
-
 from posts.models import Comment, Group, Post, User
 
 from yatube.settings import POSTS_PER_PAGE
@@ -360,7 +359,7 @@ class CommentViewsTest(TestCase):
         self.assertEqual(Comment.objects.count(), comment_count + 1)
         self.assertTrue(Comment.objects.filter(
             text=form_data['text'],
-            author=CommentViewsTest.auth_user.id,
+            author=self.auth_user.id,
             post=self.post.id
         ).exists())
         self.assertEqual(comment_obj.author, self.auth_user)

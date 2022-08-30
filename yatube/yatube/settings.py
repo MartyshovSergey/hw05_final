@@ -14,6 +14,8 @@ import os
 
 POSTS_PER_PAGE: int = 10
 
+CASHE_TIME = (60 * 20)
+
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))

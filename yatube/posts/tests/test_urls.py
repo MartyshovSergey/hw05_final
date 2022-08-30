@@ -25,17 +25,17 @@ class PostsUrlsTests(TestCase):
         cls.authorized_client.force_login(cls.post.author)
 
     def test_url_avaliable_to_authorized(self):
-        """Страницы доступные авторизованным пользователям"""
+        '''Страницы доступные авторизованным пользователям'''
         response = self.authorized_client.get('/create/')
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_url_available_to_author_post(self):
-        """Страница редактирования поста"""
+        '''Страница редактирования поста'''
         response = self.authorized_client.get(f'/posts/{self.post.id}/edit/')
         self.assertEqual(response.status_code, HTTPStatus.OK)
 
     def test_urls_used_correct_template(self):
-        """URL-адрес использует соответствующий шаблон."""
+        '''URL-адрес использует соответствующий шаблон.'''
         templates_pages_names = {
             reverse(
                 'posts:index'
@@ -62,23 +62,31 @@ class PostsUrlsTests(TestCase):
                 self.assertTemplateUsed(response, template)
 
     def test_page_404(self):
-        """При попытке перехода на несуществующую страницу"""
+        '''При попытке перехода на несуществующую страницу'''
         response = self.client.get('/12312dsf/')
         self.assertEqual(response.status_code, HTTPStatus.NOT_FOUND)
 
     def test_post_edit_url_redirect_anonymous_on_admin_login(self):
-        """Запрос по адресу /posts/{self.post.id}/edit/ перенаправит
+        '''Запрос по адресу /posts/{self.post.id}/edit/ перенаправит
         анонимного пользователя на страницу логина.
-        """
+        '''
         response = self.client.get(
-            f'/posts/{self.post.id}/edit/',
+            reverse(
+                'posts:post_edit',
+                kwargs={'post_id': f'{self.post.id}'}
+            ),
             follow=True
         )
         self.assertRedirects(
             response, (f'/auth/login/?next=/posts/{self.post.id}/edit/'))
 
     def test_random_client_redirect_url(self):
-        """У не автора поста должен проверяться редирект"""
-        response = self.client.get(f'/posts/{self.post.id}/edit/')
+        '''У не автора поста должен проверяться редирект'''
+        response = self.client.get(
+            reverse(
+                'posts:post_edit',
+                kwargs={'post_id': f'{self.post.id}'}
+            )
+        )
         self.assertRedirects(
             response, (f'/auth/login/?next=/posts/{self.post.id}/edit/'))

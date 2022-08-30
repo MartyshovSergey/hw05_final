@@ -19,7 +19,7 @@ class PostModelTest(TestCase):
         )
 
     def test_models_have_correct_object_names(self):
-        """Проверяем, что у моделей корректно работает __str__."""
+        '''Проверяем, что у моделей корректно работает __str__.'''
         str_testing = {
             self.post: self.post.text[:15],
             self.group: self.group.title,
@@ -29,10 +29,11 @@ class PostModelTest(TestCase):
                 self.assertEqual(str(value), expected_value)
 
     def test_verbose_name(self):
-        """тест verbose_name"""
-        verbose_names = {'text': 'Текст',
-                         'group': 'Группа',
-                         }
+        '''тест verbose_name'''
+        verbose_names = {
+            'text': 'Текст',
+            'group': 'Группа',
+        }
         for field, expected_value in verbose_names.items():
             with self.subTest(field=field):
                 self.assertEqual(
@@ -41,10 +42,11 @@ class PostModelTest(TestCase):
                 )
 
     def test_title_help_text(self):
-        """Проверка заполнения help_text"""
-        field_help_texts = {'group': 'Группа, к которой будет относиться пост',
-                            'text': 'Введите текст поста'
-                            }
+        '''Проверка заполнения help_text'''
+        field_help_texts = {
+            'group': 'Группа, к которой будет относиться пост',
+            'text': 'Введите текст поста'
+        }
         for field, expected_value in field_help_texts.items():
             with self.subTest(field=field):
                 self.assertEqual(

@@ -38,7 +38,7 @@ class PostCreateFormTests(TestCase):
         shutil.rmtree(TEMP_MEDIA_ROOT, ignore_errors=True)
 
     def test_create_post(self):
-        """Валидная форма создаёт запись в Post."""
+        '''Валидная форма создаёт запись в Post.'''
         posts_count = Post.objects.count()
         small_gif = (
             b'\x47\x49\x46\x38\x39\x61\x02\x00'
@@ -54,10 +54,10 @@ class PostCreateFormTests(TestCase):
             content_type='image/gif'
         )
         form_data = {
-            'author': self.user.username,
-            'text': 'Новый тестовый пост',
             'group': '',
+            'author': self.user.username,
             'image': uploaded,
+            'text': 'Новый тестовый пост',
         }
         response = self.authorized_client.post(
             reverse('posts:post_create'),
@@ -74,18 +74,18 @@ class PostCreateFormTests(TestCase):
         # Проверяем, что создалась запись
         self.assertTrue(
             Post.objects.filter(
-                text=form_data['text'],
                 author=self.user,
-                image='posts/small.gif'
+                image='posts/small.gif',
+                text=form_data['text'],
             ).exists()
         )
 
     def test_edit_post(self):
-        """Валидная форма изменяет запись в Post."""
+        '''Валидная форма изменяет запись в Post.'''
         form_data = {
             'author': self.user.username,
-            'text': 'Изменённый тестовый пост',
             'group': '',
+            'text': 'Изменённый тестовый пост',
         }
         response = self.authorized_client.post(
             reverse(
@@ -104,7 +104,7 @@ class PostCreateFormTests(TestCase):
         self.assertTrue(
             Post.objects.filter(
                 author=self.post.author,
-                text=form_data['text'],
                 id=self.post.id,
+                text=form_data['text'],
             ).exists()
         )
